@@ -1,3 +1,4 @@
+import process from 'node:process'
 import antfu from '@antfu/eslint-config'
 
 export default antfu({
@@ -9,6 +10,9 @@ export default antfu({
 
   // Disable stylistic formatting (use Prettier instead)
   stylistic: false,
+
+  // Disable linting of code blocks inside markdown files
+  markdown: false,
 
   // Ignore patterns
   ignores: [

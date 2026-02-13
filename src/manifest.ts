@@ -1,6 +1,6 @@
-import fs from "fs-extra";
 import type { Manifest } from "webextension-polyfill";
 import type PkgType from "../package.json";
+import fs from "fs-extra";
 import { isDev, isFirefox, port, r } from "../scripts/utils";
 
 // Type extension for Chrome's side_panel API (not in webextension-polyfill types yet)
