@@ -1,28 +1,29 @@
-# WebExtension Vite Starter
+# Xuan Clipper - 智能论文与网页提取工具
 
-A [Vite](https://vitejs.dev/) powered WebExtension ([Chrome](https://developer.chrome.com/docs/extensions/reference/), [FireFox](https://addons.mozilla.org/en-US/developers/), etc.) starter template.
+一个基于 [Vite](https://vitejs.dev/) 的跨浏览器扩展 ([Chrome](https://developer.chrome.com/docs/extensions/reference/), [Firefox](https://addons.mozilla.org/en-US/developers/), [Edge](https://microsoftedge.microsoft.com/addons/))，能够智能识别并提取论文元信息，将网页转换为 Markdown，并通过 Native Messaging 与本地程序通信。
 
-<p align="center">
-<sub>Popup</sub><br/>
-<img width="655" src="https://user-images.githubusercontent.com/11247099/126741643-813b3773-17ff-4281-9737-f319e00feddc.png"><br/>
-<sub>Options Page</sub><br/>
-<img width="655" src="https://user-images.githubusercontent.com/11247099/126741653-43125b62-6578-4452-83a7-bee19be2eaa2.png"><br/>
-<sub>Inject Vue App into the Content Script</sub><br/>
-<img src="https://user-images.githubusercontent.com/11247099/130695439-52418cf0-e186-4085-8e19-23fe808a274e.png">
-</p>
+## ✨ 核心功能
 
-## Features
+- 🎯 **智能页面识别** - 自动识别论文页面（arXiv、PubMed、IEEE、ACM 等）
+- 📄 **论文元信息提取** - 提取标题、作者、摘要、DOI、期刊等结构化信息
+- 📝 **Markdown 转换** - 将普通网页转换为干净的 Markdown 格式
+- 🔗 **本地程序通信** - 通过 Native Messaging 协议与本地程序交互
+- ⚙️ **灵活配置** - 自定义识别规则、转换选项、域名白名单
+- 🎨 **现代化 UI** - 基于 Vue 3 和 UnoCSS 的简洁界面
+- 🌓 **深色模式** - 支持深色/浅色主题切换
 
-- ⚡️ **Instant HMR** - use **Vite** on dev (no more refresh!)
-- 🥝 Vue 3 - Composition API, [`<script setup>` syntax](https://github.com/vuejs/rfcs/blob/master/active-rfcs/0040-script-setup.md) and more!
-- 💬 Effortless communications - powered by [`webext-bridge`](https://github.com/antfu/webext-bridge) and [VueUse](https://github.com/antfu/vueuse) storage
-- 🌈 [UnoCSS](https://github.com/unocss/unocss) - The instant on-demand Atomic CSS engine.
-- 🦾 [TypeScript](https://www.typescriptlang.org/) - type safe
-- 📦 [Components auto importing](./src/components)
-- 🌟 [Icons](./src/components) - Access to icons from any iconset directly
-- 🖥 Content Script - Use Vue even in content script
-- 🌍 WebExtension - isomorphic extension for Chrome, Firefox, and others
-- 📃 Dynamic `manifest.json` with full type support
+## 🚀 技术栈
+
+- ⚡️ **Vite** - 极速的开发体验，支持 HMR
+- 🥝 **Vue 3** - Composition API + `<script setup>` 语法
+- 💬 **webext-bridge** - 轻松实现跨上下文通信
+- 🌈 **UnoCSS** - 即时的原子化 CSS 引擎
+- 🦾 **TypeScript** - 类型安全
+- 📦 **自动导入** - 组件和 Composition API 自动导入
+- 🌟 **Iconify** - 访问任意图标集
+- 🖥 **Content Script** - 在内容脚本中使用 Vue
+- 🌍 **跨浏览器** - 支持 Chrome、Firefox、Edge 等
+- 📃 **动态 Manifest** - 完整类型支持的 `manifest.json`
 
 ## Pre-packed
 
@@ -77,62 +78,180 @@ cd my-webext
 pnpm i
 ```
 
-## Usage
+## 📦 项目结构
 
 ### Folders
 
-- `src` - main source.
-  - `contentScript` - scripts and components to be injected as `content_script`
-  - `background` - scripts for background.
-  - `components` - auto-imported Vue components that are shared in popup and options page.
-  - `styles` - styles shared in popup and options page
-  - `assets` - assets used in Vue components
-  - `manifest.ts` - manifest for the extension.
-- `extension` - extension package root.
-  - `assets` - static assets (mainly for `manifest.json`).
-  - `dist` - built files, also serve stub entry for Vite on development.
-- `scripts` - development and bundling helper scripts.
+- `src` - 主要源代码目录
+  - `contentScripts` - 注入到页面的内容脚本和组件
+  - `background` - 后台服务 worker 脚本
+  - `popup` - 弹窗页面
+  - `options` - 选项配置页面
+  - `sidepanel` - 侧边栏页面
+  - `components` - 自动导入的共享 Vue 组件
+  - `composables` - 可复用的组合式函数
+  - `logic` - 核心业务逻辑
+    - `page-detector.ts` - 页面类型识别
+    - `paper-extractor.ts` - 论文元信息提取
+    - `markdown-converter.ts` - Markdown 转换
+    - `native-messaging.ts` - 本地程序通信
+    - `storage.ts` - 存储管理
+  - `styles` - 共享样式
+  - `assets` - Vue 组件中使用的资源
+  - `manifest.ts` - 扩展清单配置
+- `extension` - 扩展包根目录
+  - `assets` - 静态资源（主要用于 `manifest.json`）
+  - `dist` - 构建输出文件
+- `scripts` - 开发和构建辅助脚本
+- `docs` - 项目文档
+  - `xuan-clipper.md` - 详细需求文档
+  - `development-plan.md` - 开发计划
 
-### Development
+## 🛠️ 开发指南
+
+### 安装依赖
 
 ```bash
-pnpm dev
+pnpm install
 ```
 
-Then **load extension in browser with the `extension/` folder**.
-
-For Firefox developers, you can run the following command instead:
+### 开发模式
 
 ```bash
+# Chrome/Edge 开发模式
+pnpm dev
+
+# Firefox 开发模式
 pnpm dev-firefox
 ```
 
-`web-ext` auto reload the extension when `extension/` files changed.
-
-> While Vite handles HMR automatically in the most of the case, [Extensions Reloader](https://chrome.google.com/webstore/detail/fimgfedafeadlieiabdeeaodndnlbhid) is still recommended for cleaner hard reloading.
-
-## Using Gitpod
-
-If you have a web browser, you can get a fully pre-configured development environment with one click:
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/antfu/vitesse-webext)
-
-### Build
-
-To build the extension, run
+### 构建
 
 ```bash
+# 生产构建
 pnpm build
+
+# 打包扩展
+pnpm pack
 ```
 
-And then pack files under `extension`, you can upload `extension.crx` or `extension.xpi` to appropriate extension store.
+### 其他命令
 
-## Credits
+```bash
+# 代码检查
+pnpm lint
 
-[![Volta](https://user-images.githubusercontent.com/904724/195351818-9e826ea9-12a0-4b06-8274-352743cd2047.png)](https://volta.net)
+# 类型检查
+pnpm typecheck
 
-This template is originally made for the [volta.net](https://volta.net) browser extension.
+# 运行测试
+pnpm test
 
-## Variations
+# E2E 测试
+pnpm test:e2e
+```
 
-This is a variant of [Vitesse](https://github.com/antfu/vitesse), check out the [full variations list](https://github.com/antfu/vitesse#variations).
+## 📝 使用说明
+
+1. **安装扩展**
+   - 开发模式：加载 `extension` 目录作为未打包的扩展
+   - 生产模式：安装打包后的 `.crx` (Chrome/Edge) 或 `.xpi` (Firefox) 文件
+
+2. **配置**
+   - 点击扩展图标打开弹窗
+   - 进入选项页面配置识别规则、Markdown 转换选项等
+
+3. **使用功能**
+   - 访问论文页面：自动识别并提取元信息
+   - 访问普通网页：转换为 Markdown
+   - 右键菜单：快速发送选中内容或整页内容
+   - Native Messaging：需要先安装配套的本地程序
+
+## 📖 文档
+
+- [详细需求文档](./docs/xuan-clipper.md)
+- [开发计划](./docs/development-plan.md)
+- [项目概述](./CLAUDE.md)
+
+## 🔧 技术细节
+
+### 预装库
+
+#### WebExtension 库
+- [`webextension-polyfill`](https://github.com/mozilla/webextension-polyfill) - WebExtension API Polyfill
+- [`webext-bridge`](https://github.com/antfu/webext-bridge) - 跨上下文通信
+
+#### Vite 插件
+- [`unplugin-auto-import`](https://github.com/antfu/unplugin-auto-import) - 自动导入 API
+- [`unplugin-vue-components`](https://github.com/antfu/vite-plugin-components) - 组件自动导入
+- [`unplugin-icons`](https://github.com/antfu/unplugin-icons) - 图标组件化
+
+#### Vue 插件
+- [VueUse](https://github.com/antfu/vueuse) - 实用的组合式 API 集合
+
+#### UI 框架
+- [UnoCSS](https://github.com/unocss/unocss) - 即时原子化 CSS 引擎
+
+#### 功能库
+- [Turndown](https://github.com/mixmark-io/turndown) - HTML 转 Markdown
+
+### 编码规范
+
+- 使用 Composition API 和 `<script setup>` 语法
+- [ESLint](https://eslint.org/) + [@antfu/eslint-config](https://github.com/antfu/eslint-config)
+- 单引号，无分号
+
+### 开发工具
+
+- [TypeScript](https://www.typescriptlang.org/)
+- [pnpm](https://pnpm.js.org/) - 快速、节省磁盘空间的包管理器
+- [esno](https://github.com/antfu/esno) - TypeScript/ESNext 运行时
+- [web-ext](https://github.com/mozilla/web-ext) - 扩展开发工具
+
+## 🚧 开发路线图
+
+- [x] 项目初始化和基础配置
+- [ ] 核心逻辑模块开发（页面识别、论文提取、Markdown 转换）
+- [ ] 存储与配置管理
+- [ ] Native Messaging 通信
+- [ ] Content Script 实现
+- [ ] Background Service Worker
+- [ ] Popup 页面
+- [ ] Options 页面
+- [ ] 测试与优化
+- [ ] 文档完善
+- [ ] 发布准备
+
+详见 [开发计划](./docs/development-plan.md)
+
+## 💡 加载扩展
+
+开发模式下，在浏览器中加载 `extension/` 目录：
+
+**Chrome/Edge:**
+1. 打开 `chrome://extensions/`
+2. 开启"开发者模式"
+3. 点击"加载已解压的扩展程序"
+4. 选择 `extension` 目录
+
+**Firefox:**
+```bash
+pnpm start-firefox
+```
+
+或者手动加载：
+1. 打开 `about:debugging#/runtime/this-firefox`
+2. 点击"临时加载附加组件"
+3. 选择 `extension/manifest.json`
+
+> 💡 提示：使用 [Extensions Reloader](https://chrome.google.com/webstore/detail/fimgfedafeadlieiabdeeaodndnlbhid) 可以更方便地重新加载扩展。
+
+## 📄 许可证
+
+[MIT](./LICENSE)
+
+## 🙏 致谢
+
+本项目基于 [Vitesse WebExt](https://github.com/antfu/vitesse-webext) 模板构建。
+
+感谢 [@antfu](https://github.com/antfu) 创建的优秀模板和工具链。
