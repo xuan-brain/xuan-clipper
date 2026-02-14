@@ -3,11 +3,6 @@ import type PkgType from "../package.json";
 import fs from "fs-extra";
 import { isDev, isFirefox, port, r } from "../scripts/utils";
 
-// Type extension for Chrome's side_panel API (not in webextension-polyfill types yet)
-interface ManifestWithSidePanel extends Manifest.WebExtensionManifest {
-  side_panel?: { default_path: string };
-}
-
 export async function getManifest() {
   const pkg = (await fs.readJSON(r("package.json"))) as typeof PkgType;
 
@@ -45,7 +40,6 @@ export async function getManifest() {
       "tabs", // Access tab information for page detection
       "storage", // Store configuration and cache
       "activeTab", // Access current tab content
-      "sidePanel", // Side panel functionality
       "contextMenus", // Right-click menu for quick actions
       "clipboardWrite", // Copy Markdown to clipboard
       "scripting", // Dynamic script injection
@@ -72,18 +66,6 @@ export async function getManifest() {
         : "script-src 'self'; object-src 'self'",
     },
   };
-
-  // add sidepanel
-  if (isFirefox) {
-    manifest.sidebar_action = {
-      default_panel: "dist/sidepanel/index.html",
-    };
-  } else {
-    // the sidebar_action does not work for chromium based
-    (manifest as ManifestWithSidePanel).side_panel = {
-      default_path: "dist/sidepanel/index.html",
-    };
-  }
 
   // FIXME: not work in MV3
   // for content script, as browsers will cache them for each reload,
