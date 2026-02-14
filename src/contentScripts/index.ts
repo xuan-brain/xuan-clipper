@@ -2,12 +2,8 @@ import type {ExportMarkdownResponse, ImportPaperResponse, PageTypeResponse} from
 import { createApp } from "vue";
 import { onMessage } from "webext-bridge/content-script";
 import { setupApp } from "~/logic/common-setup";
-import {
-  
-  
-  MESSAGE_TYPES
-  
-} from "~/logic/messaging";
+import { convertToMarkdown } from "~/logic/markdown-converter";
+import { MESSAGE_TYPES } from "~/logic/messaging";
 import { pageDetector } from "~/logic/page-detector";
 import App from "./views/App.vue";
 
@@ -52,13 +48,23 @@ import App from "./views/App.vue";
     },
   );
 
-  // 处理导出 Markdown 操作 (placeholder)
+  // 处理导出 Markdown 操作
   onMessage(
     MESSAGE_TYPES.EXPORT_MARKDOWN,
     async (): Promise<ExportMarkdownResponse> => {
       console.log("[xuan-clipper] Export markdown triggered");
-      // TODO: Implement markdown export logic
-      return { success: true };
+      try {
+        const markdown = convertToMarkdown(document);
+        return {
+          success: true,
+          markdown,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
     },
   );
 

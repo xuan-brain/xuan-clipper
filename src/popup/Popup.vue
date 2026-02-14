@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import type {PageTypeResponse} from "~/logic/messaging";
+import type {ExportMarkdownResponse, PageTypeResponse} from "~/logic/messaging";
 import type { DetectionResult } from "~/logic/page-detector";
 import { onMounted, ref } from "vue";
 import { sendMessage } from "webext-bridge/popup";
-import { MESSAGE_TYPES  } from "~/logic/messaging";
+import {
+  
+  MESSAGE_TYPES
+  
+} from "~/logic/messaging";
 
 // 状态
 const loading = ref(true);
@@ -66,16 +70,14 @@ async function handleImportPaper() {
 // 处理导出 Markdown 操作
 async function handleExportMarkdown() {
   try {
-    const [tab] = await browser.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-    if (tab?.id) {
-      await sendMessage(
-        MESSAGE_TYPES.EXPORT_MARKDOWN,
-        {},
-        { context: "content-script", tabId: tab.id },
-      );
+    const response = await sendMessage<ExportMarkdownResponse>(
+      MESSAGE_TYPES.EXPORT_MARKDOWN,
+      {},
+      { context: "background" },
+    );
+
+    if (!response.success) {
+      console.error("Export markdown failed:", response.error);
     }
   } catch (e) {
     console.error("Export markdown failed:", e);

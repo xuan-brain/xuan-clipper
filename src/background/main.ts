@@ -1,7 +1,11 @@
 import type { Tabs } from "webextension-polyfill";
-import type {PageTypeResponse} from "~/logic/messaging";
+import type {ExportMarkdownResponse, PageTypeResponse} from "~/logic/messaging";
 import { onMessage, sendMessage } from "webext-bridge/background";
-import { MESSAGE_TYPES  } from "~/logic/messaging";
+import {
+  
+  MESSAGE_TYPES
+  
+} from "~/logic/messaging";
 
 // only on dev mode
 if (import.meta.hot) {
@@ -107,3 +111,102 @@ onMessage(MESSAGE_TYPES.GET_PAGE_TYPE, async (): Promise<PageTypeResponse> => {
     };
   }
 });
+
+// 处理导出 Markdown 请求: Popup -> Background -> Content Script -> 打开新 Tab
+onMessage(
+  MESSAGE_TYPES.EXPORT_MARKDOWN,
+  async (): Promise<ExportMarkdownResponse> => {
+    // 获取当前窗口的活动标签页
+    const [tab] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+
+    if (!tab?.id) {
+      return { success: false, error: "No active tab found" };
+    }
+
+    // 检查是否为受限页面
+    if (
+      tab.url?.startsWith("chrome://") ||
+      tab.url?.startsWith("edge://") ||
+      tab.url?.startsWith("about:") ||
+      tab.url?.startsWith("chrome-extension://") ||
+      tab.url?.startsWith("moz-extension://")
+    ) {
+      return { success: false, error: "Cannot access this page" };
+    }
+
+    try {
+      // 转发到 Content Script 获取 Markdown
+      const response = await sendMessage<ExportMarkdownResponse>(
+        MESSAGE_TYPES.EXPORT_MARKDOWN,
+        {},
+        { context: "content-script", tabId: tab.id },
+      );
+
+      if (response.success && response.markdown) {
+        // 创建 HTML 页面显示 Markdown
+        const htmlContent = createMarkdownHtml(response.markdown);
+        const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`;
+
+        // 打开新 Tab
+        await browser.tabs.create({ url: dataUrl });
+      }
+
+      return response;
+    } catch {
+      return {
+        success: false,
+        error: "Content script not available",
+      };
+    }
+  },
+);
+
+/**
+ * 创建显示 Markdown 的 HTML 页面
+ */
+function createMarkdownHtml(markdown: string): string {
+  // 转义 HTML 特殊字符
+  const escapedMarkdown = markdown
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown Export</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      line-height: 1.6;
+      color: #333;
+      background: #fafafa;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <pre>${escapedMarkdown}</pre>
+</body>
+</html>`;
+}

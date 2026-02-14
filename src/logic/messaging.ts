@@ -15,7 +15,7 @@ export const MESSAGE_TYPES = {
   GET_PAGE_TYPE: "get-page-type",
   /** Popup -> Content Script: 导入论文操作 */
   IMPORT_PAPER: "import-paper",
-  /** Popup -> Content Script: 导出 Markdown 操作 */
+  /** Popup -> Background: 导出 Markdown 操作 */
   EXPORT_MARKDOWN: "export-markdown",
 } as const;
 
@@ -64,5 +64,6 @@ export interface ExportMarkdownRequest {
  */
 export interface ExportMarkdownResponse {
   success: boolean;
+  markdown?: string;
   error?: string;
 }
