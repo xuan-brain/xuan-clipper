@@ -3,7 +3,7 @@
  * 用于 webext-bridge 跨上下文通信
  */
 
-import type { DetectionResult } from './page-detector'
+import type { DetectionResult } from "./page-detector";
 
 // ============ 消息类型常量 ============
 
@@ -12,12 +12,12 @@ import type { DetectionResult } from './page-detector'
  */
 export const MESSAGE_TYPES = {
   /** Popup -> Content Script: 请求页面类型检测 */
-  GET_PAGE_TYPE: 'get-page-type',
+  GET_PAGE_TYPE: "get-page-type",
   /** Popup -> Content Script: 导入论文操作 */
-  IMPORT_PAPER: 'import-paper',
+  IMPORT_PAPER: "import-paper",
   /** Popup -> Content Script: 导出 Markdown 操作 */
-  EXPORT_MARKDOWN: 'export-markdown',
-} as const
+  EXPORT_MARKDOWN: "export-markdown",
+} as const;
 
 // ============ 请求/响应类型 ============
 
@@ -25,16 +25,16 @@ export const MESSAGE_TYPES = {
  * 页面类型请求
  */
 export interface PageTypeRequest {
-  tabId?: number
+  tabId?: number;
 }
 
 /**
  * 页面类型响应
  */
 export interface PageTypeResponse {
-  success: boolean
-  result?: DetectionResult
-  error?: string
+  success: boolean;
+  result?: DetectionResult;
+  error?: string;
 }
 
 /**
@@ -48,8 +48,8 @@ export interface ImportPaperRequest {
  * 导入论文响应
  */
 export interface ImportPaperResponse {
-  success: boolean
-  error?: string
+  success: boolean;
+  error?: string;
 }
 
 /**
@@ -63,6 +63,6 @@ export interface ExportMarkdownRequest {
  * 导出 Markdown 响应
  */
 export interface ExportMarkdownResponse {
-  success: boolean
-  error?: string
+  success: boolean;
+  error?: string;
 }

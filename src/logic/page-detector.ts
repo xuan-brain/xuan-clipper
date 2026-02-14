@@ -582,7 +582,7 @@ export class PageDetector {
 
     // 字符串模式: 支持通配符 *
     if (pattern.includes("*")) {
-      const regex = new RegExp(`^${  pattern.replace(/\*/g, ".*")  }$`);
+      const regex = new RegExp(`^${pattern.replace(/\*/g, ".*")}$`);
       return regex.test(url);
     }
 
