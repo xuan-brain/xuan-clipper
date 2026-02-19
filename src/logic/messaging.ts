@@ -49,6 +49,7 @@ export interface ImportPaperRequest {
  */
 export interface ImportPaperResponse {
   success: boolean;
+  content?: string;
   error?: string;
 }
 

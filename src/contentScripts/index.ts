@@ -5,6 +5,7 @@ import { setupApp } from "~/logic/common-setup";
 import { convertToMarkdown } from "~/logic/markdown-converter";
 import { MESSAGE_TYPES } from "~/logic/messaging";
 import { pageDetector } from "~/logic/page-detector";
+import { extractPaperContent } from "~/logic/paper-extractor";
 import App from "./views/App.vue";
 
 // Firefox `browser.tabs.executeScript()` requires scripts return a primitive value
@@ -38,13 +39,25 @@ import App from "./views/App.vue";
     },
   );
 
-  // 处理导入论文操作 (placeholder)
+  // 处理导入论文操作
   onMessage(
     MESSAGE_TYPES.IMPORT_PAPER,
     async (): Promise<ImportPaperResponse> => {
       console.log("[xuan-clipper] Import paper triggered");
-      // TODO: Implement paper import logic
-      return { success: true };
+      try {
+        // 提取论文主体内容
+        const content = extractPaperContent(document);
+
+        return {
+          success: true,
+          content,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
     },
   );
 

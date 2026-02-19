@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import type {ExportMarkdownResponse, PageTypeResponse} from "~/logic/messaging";
+import type {
+  ExportMarkdownResponse,
+  ImportPaperResponse,
+  PageTypeResponse,
+} from "~/logic/messaging";
 import type { DetectionResult } from "~/logic/page-detector";
 import { onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { sendMessage } from "webext-bridge/popup";
-import {
-  
-  MESSAGE_TYPES
-  
-} from "~/logic/messaging";
+import { MESSAGE_TYPES } from "~/logic/messaging";
+
+const { t } = useI18n();
 
 // 状态
 const loading = ref(true);
@@ -49,16 +52,14 @@ async function detectPageType() {
 // 处理导入论文操作
 async function handleImportPaper() {
   try {
-    const [tab] = await browser.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-    if (tab?.id) {
-      await sendMessage(
-        MESSAGE_TYPES.IMPORT_PAPER,
-        {},
-        { context: "content-script", tabId: tab.id },
-      );
+    const response = await sendMessage<ImportPaperResponse>(
+      MESSAGE_TYPES.IMPORT_PAPER,
+      {},
+      { context: "background" },
+    );
+
+    if (!response.success) {
+      console.error("Import paper failed:", response.error);
     }
   } catch (e) {
     console.error("Import paper failed:", e);
@@ -102,7 +103,7 @@ onMounted(() => {
     <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center py-6">
       <div class="animate-spin i-carbon-renew text-2xl text-blue-500" />
-      <span class="ml-2 text-gray-500">检测页面类型...</span>
+      <span class="ml-2 text-gray-500">{{ t("popup.detecting") }}</span>
     </div>
 
     <!-- Content -->
@@ -124,7 +125,9 @@ onMounted(() => {
         <div class="flex items-center mb-2">
           <div class="i-carbon-document text-2xl text-green-600" />
           <div class="ml-2">
-            <span class="font-semibold text-gray-800">论文页面</span>
+            <span class="font-semibold text-gray-800">{{
+              t("popup.paperPage")
+            }}</span>
             <span
               v-if="pageTypeResult.platform"
               class="ml-2 text-sm text-gray-500"
@@ -134,7 +137,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="text-xs text-gray-400 mb-3">
-          检测方式: {{ pageTypeResult.source }} ({{
+          {{ t("popup.detectionMethod") }}: {{ pageTypeResult.source }} ({{
             (pageTypeResult.confidence * 100).toFixed(0)
           }}%)
         </div>
@@ -143,7 +146,7 @@ onMounted(() => {
           @click="handleImportPaper"
         >
           <div class="i-carbon-add mr-2" />
-          导入该论文
+          {{ t("popup.importPaper") }}
         </button>
       </div>
 
@@ -151,17 +154,19 @@ onMounted(() => {
       <div v-else class="bg-blue-50 rounded-lg p-4">
         <div class="flex items-center mb-2">
           <div class="i-carbon-document-attachment text-2xl text-blue-600" />
-          <span class="ml-2 font-semibold text-gray-800">普通页面</span>
+          <span class="ml-2 font-semibold text-gray-800">{{
+            t("popup.webPage")
+          }}</span>
         </div>
         <div class="text-xs text-gray-400 mb-3">
-          可以转换为 Markdown 格式
+          {{ t("popup.canConvertToMarkdown") }}
         </div>
         <button
           class="w-full flex items-center justify-center px-4 py-2 rounded-lg bg-blue-500 text-white font-medium hover:bg-blue-600 transition-colors"
           @click="handleExportMarkdown"
         >
           <div class="i-carbon-download mr-2" />
-          导出 Markdown
+          {{ t("popup.exportMarkdown") }}
         </button>
       </div>
     </div>
@@ -175,13 +180,13 @@ onMounted(() => {
         class="text-gray-500 hover:text-gray-700 transition-colors"
         @click="detectPageType"
       >
-        刷新
+        {{ t("common.refresh") }}
       </button>
       <button
         class="text-gray-500 hover:text-gray-700 transition-colors"
         @click="openOptionsPage"
       >
-        设置
+        {{ t("common.settings") }}
       </button>
     </div>
   </main>
