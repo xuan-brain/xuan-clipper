@@ -28,4 +28,12 @@ export default {
     content: "正文",
     noContent: "未能提取到正文内容",
   },
+  notifications: {
+    importSuccess: "导入成功",
+    importSuccessMessage: "论文已发送到本地程序",
+    importFailed: "导入失败",
+    extractFailed: "无法提取页面内容",
+    networkError: "网络连接失败",
+    timeout: "请求超时",
+  },
 };

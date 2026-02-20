@@ -28,4 +28,12 @@ export default {
     content: "Content",
     noContent: "No content extracted",
   },
+  notifications: {
+    importSuccess: "Import Successful",
+    importSuccessMessage: "Paper has been sent to local program",
+    importFailed: "Import Failed",
+    extractFailed: "Failed to extract page content",
+    networkError: "Network connection failed",
+    timeout: "Request timeout",
+  },
 };

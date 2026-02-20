@@ -44,6 +44,7 @@ export async function getManifest() {
       "clipboardWrite", // Copy Markdown to clipboard
       "scripting", // Dynamic script injection
       "nativeMessaging", // Communicate with local programs
+      "notifications", // Show import result notifications
     ],
     // Optional: Allow users to control site access
     host_permissions: ["*://*/*"],

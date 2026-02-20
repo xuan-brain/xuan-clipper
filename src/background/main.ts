@@ -8,6 +8,7 @@ import { marked } from "marked";
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { getMessages } from "~/locales";
 import { MESSAGE_TYPES } from "~/logic/messaging";
+import { apiConfig } from "~/logic/storage";
 
 // only on dev mode
 if (import.meta.hot) {
@@ -166,17 +167,23 @@ onMessage(
   },
 );
 
-// 处理导入论文请求: Popup -> Background -> Content Script -> 打开新 Tab
+// 处理导入论文请求: Popup -> Background -> Content Script -> 调用API -> 显示通知
 onMessage(
   MESSAGE_TYPES.IMPORT_PAPER,
   async (): Promise<ImportPaperResponse> => {
+    console.log("[xuan-clipper] IMPORT_PAPER message received");
+    const i18n = getMessages();
+
     // 获取当前窗口的活动标签页
     const [tab] = await browser.tabs.query({
       active: true,
       currentWindow: true,
     });
+    console.log("[xuan-clipper] Active tab:", tab?.id, tab?.url);
 
     if (!tab?.id) {
+      console.log("[xuan-clipper] No active tab, showing notification");
+      await showNotification(i18n.notifications?.importFailed || "Import Failed", "No active tab found");
       return { success: false, error: "No active tab found" };
     }
 
@@ -188,35 +195,111 @@ onMessage(
       tab.url?.startsWith("chrome-extension://") ||
       tab.url?.startsWith("moz-extension://")
     ) {
+      console.log("[xuan-clipper] Restricted page, showing notification");
+      await showNotification(i18n.notifications?.importFailed || "Import Failed", "Cannot access this page");
       return { success: false, error: "Cannot access this page" };
     }
 
     try {
       // 转发到 Content Script 获取论文内容
+      console.log("[xuan-clipper] Sending message to content script...");
       const response = await sendMessage<ImportPaperResponse>(
         MESSAGE_TYPES.IMPORT_PAPER,
         {},
         { context: "content-script", tabId: tab.id },
       );
+      console.log("[xuan-clipper] Content script response:", response.success, response.content?.length);
 
-      if (response.success && response.content) {
-        // 创建论文查看器 HTML
-        const htmlContent = createPaperViewerHtml(response.content);
-        const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`;
-
-        // 打开新 Tab
-        await browser.tabs.create({ url: dataUrl });
+      if (!response.success || !response.content) {
+        console.log("[xuan-clipper] Content extraction failed, showing notification");
+        await showNotification(
+          i18n.notifications?.importFailed || "Import Failed",
+          response.error || i18n.notifications?.extractFailed || "Failed to extract content",
+        );
+        return { success: false, error: response.error };
       }
 
-      return response;
-    } catch {
+      // 发送到 API
+      console.log("[xuan-clipper] Sending to API...");
+      const apiResult = await sendHtmlToApi(response.content);
+      console.log("[xuan-clipper] API result:", apiResult);
+
+      if (apiResult.success) {
+        console.log("[xuan-clipper] API success, showing notification");
+        await showNotification(
+          i18n.notifications?.importSuccess || "Import Successful",
+          i18n.notifications?.importSuccessMessage || "Paper has been sent to local program",
+        );
+      } else {
+        console.log("[xuan-clipper] API failed, showing notification");
+        await showNotification(
+          i18n.notifications?.importFailed || "Import Failed",
+          apiResult.error || i18n.notifications?.networkError || "Network error",
+        );
+      }
+
       return {
-        success: false,
-        error: "Content script not available",
+        success: true,
+        content: response.content,
       };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("[xuan-clipper] Error in IMPORT_PAPER handler:", error);
+      await showNotification(i18n.notifications?.importFailed || "Import Failed", errorMessage);
+      return { success: false, error: errorMessage };
     }
   },
 );
+
+/**
+ * 发送 HTML 到 API
+ */
+async function sendHtmlToApi(htmlContent: string): Promise<{ success: boolean; error?: string }> {
+  if (!apiConfig.value.enabled) {
+    return { success: false, error: "API integration disabled" };
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), apiConfig.value.timeout);
+
+  try {
+    const response = await fetch(apiConfig.value.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+      body: htmlContent,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      return { success: false, error: `Server error: ${response.status}` };
+    }
+    return { success: true };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      return { success: false, error: "Request timeout" };
+    }
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
+  }
+}
+
+/**
+ * 显示浏览器通知
+ */
+async function showNotification(title: string, message: string): Promise<void> {
+  try {
+    const notificationId = await browser.notifications.create({
+      type: "basic",
+      iconUrl: browser.runtime.getURL("assets/64x64.png"),
+      title,
+      message,
+    });
+    console.log("[xuan-clipper] Notification created:", notificationId, title, message);
+  } catch (error) {
+    console.error("[xuan-clipper] Failed to create notification:", error);
+  }
+}
 
 /**
  * 创建显示 Markdown 的 HTML 页面
@@ -432,163 +515,6 @@ function createMarkdownHtml(markdown: string): string {
 
       copyBtn.onclick = function() {
         navigator.clipboard.writeText(markdown).then(function() {
-          copyBtn.textContent = copied;
-          copyBtn.classList.add('success');
-          setTimeout(function() {
-            copyBtn.textContent = copy;
-            copyBtn.classList.remove('success');
-          }, 2000);
-        });
-      };
-    })();
-  <\/script>
-</body>
-</html>`;
-}
-
-/**
- * 创建论文查看器 HTML 页面
- * 直接显示原始 HTML 内容
- */
-function createPaperViewerHtml(htmlContent: string): string {
-  const i18n = getMessages();
-
-  return `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paper Content</title>
-  <style>
-    * { box-sizing: border-box; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 40px 20px 80px;
-      line-height: 1.6;
-      color: #333;
-      background: #fafafa;
-    }
-
-    /* 工具栏 */
-    .toolbar {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      display: flex;
-      gap: 10px;
-      z-index: 1000;
-    }
-
-    .toggle-btn, .copy-btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-
-    .toggle-btn {
-      background: #10b981;
-      color: white;
-      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-    }
-    .toggle-btn:hover {
-      background: #059669;
-      transform: translateY(-1px);
-    }
-
-    .copy-btn {
-      background: #3b82f6;
-      color: white;
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-    }
-    .copy-btn:hover {
-      background: #2563eb;
-      transform: translateY(-1px);
-    }
-    .copy-btn.success {
-      background: #059669;
-    }
-
-    /* HTML 源码样式 */
-    .html-source {
-      display: none;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      font-family: 'SF Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
-      font-size: 12px;
-      line-height: 1.5;
-      background: #1e293b;
-      color: #e2e8f0;
-      padding: 24px;
-      border-radius: 12px;
-      overflow-x: auto;
-    }
-    .html-source.visible {
-      display: block;
-    }
-
-    /* HTML 内容区块 */
-    .paper-content {
-      background: #fff;
-      padding: 24px 32px;
-      border-radius: 12px;
-      border: 1px solid #e0e0e0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    .paper-content.hidden {
-      display: none;
-    }
-  </style>
-</head>
-<body>
-  <div class="toolbar">
-    <button class="toggle-btn" id="toggleBtn">${i18n.paperViewer?.viewSource || "View Source"}</button>
-    <button class="copy-btn" id="copyBtn">${i18n.paperViewer?.copy || "Copy"}</button>
-  </div>
-
-  <div class="paper-content" id="rendered">
-    ${htmlContent}
-  </div>
-
-  <pre class="html-source" id="source"></pre>
-
-  <script>
-    (function() {
-      var htmlContent = ${JSON.stringify(htmlContent)};
-      var isSourceView = false;
-      var toggleBtn = document.getElementById('toggleBtn');
-      var copyBtn = document.getElementById('copyBtn');
-      var rendered = document.getElementById('rendered');
-      var source = document.getElementById('source');
-      var viewSource = '${i18n.paperViewer?.viewSource || "View Source"}';
-      var viewRendered = '${i18n.paperViewer?.viewRendered || "View Rendered"}';
-      var copy = '${i18n.paperViewer?.copy || "Copy"}';
-      var copied = '${i18n.paperViewer?.copied || "Copied"}';
-
-      // 初始化源码显示
-      source.textContent = htmlContent;
-
-      toggleBtn.onclick = function() {
-        isSourceView = !isSourceView;
-        if (isSourceView) {
-          rendered.classList.add('hidden');
-          source.classList.add('visible');
-          toggleBtn.textContent = viewRendered;
-        } else {
-          rendered.classList.remove('hidden');
-          source.classList.remove('visible');
-          toggleBtn.textContent = viewSource;
-        }
-      };
-
-      copyBtn.onclick = function() {
-        navigator.clipboard.writeText(htmlContent).then(function() {
           copyBtn.textContent = copied;
           copyBtn.classList.add('success');
           setTimeout(function() {

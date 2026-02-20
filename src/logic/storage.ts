@@ -13,3 +13,23 @@ export const { data: detectionConfig, dataReady: detectionConfigReady } =
 
 export const { data: manualMarks, dataReady: manualMarksReady } =
   useWebExtensionStorage<ManualMark[]>("manual-marks", []);
+
+/**
+ * API 配置
+ */
+export interface ApiConfig {
+  enabled: boolean;
+  endpoint: string;
+  timeout: number;
+}
+
+export const DEFAULT_API_CONFIG: ApiConfig = {
+  enabled: true,
+  endpoint: "http://127.0.0.1:3030/api/papers/import-html",
+  timeout: 30000, // 30 seconds
+};
+
+export const { data: apiConfig } = useWebExtensionStorage<ApiConfig>(
+  "api-config",
+  DEFAULT_API_CONFIG,
+);
