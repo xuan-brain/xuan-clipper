@@ -101,11 +101,11 @@ onMessage(MESSAGE_TYPES.GET_PAGE_TYPE, async (): Promise<PageTypeResponse> => {
 
   try {
     // 转发到 Content Script
-    const response = await sendMessage<PageTypeResponse>(
+    const response = await sendMessage(
       MESSAGE_TYPES.GET_PAGE_TYPE,
       {},
       { context: "content-script", tabId: tab.id },
-    );
+    ) as unknown as PageTypeResponse;
     return response;
   } catch {
     // Content Script 可能尚未加载
@@ -144,11 +144,11 @@ onMessage(
 
     try {
       // 转发到 Content Script 获取 Markdown
-      const response = await sendMessage<ExportMarkdownResponse>(
+      const response = await sendMessage(
         MESSAGE_TYPES.EXPORT_MARKDOWN,
         {},
         { context: "content-script", tabId: tab.id },
-      );
+      ) as unknown as ExportMarkdownResponse;
 
       if (response.success && response.markdown) {
         // 创建 HTML 页面显示 Markdown
@@ -205,11 +205,11 @@ onMessage(
     try {
       // 转发到 Content Script 获取论文内容
       console.log("[xuan-clipper] Sending message to content script...");
-      const response = await sendMessage<ImportPaperResponse>(
+      const response = await sendMessage(
         MESSAGE_TYPES.IMPORT_PAPER,
         {},
         { context: "content-script", tabId: tab.id },
-      );
+      ) as unknown as ImportPaperResponse;
       console.log("[xuan-clipper] Content script response:", response.success, response.content?.length);
 
       if (!response.success || !response.content) {
@@ -289,11 +289,11 @@ onMessage(
     try {
       // 转发到 Content Script 获取 Clips 数据
       console.log("[xuan-clipper] Sending message to content script...");
-      const response = await sendMessage<ImportClipsResponse>(
+      const response = await sendMessage(
         MESSAGE_TYPES.IMPORT_CLIPS,
         {},
         { context: "content-script", tabId: tab.id },
-      );
+      ) as unknown as ImportClipsResponse;
       console.log("[xuan-clipper] Content script response:", response.success);
 
       if (!response.success || !response.clipsData) {
