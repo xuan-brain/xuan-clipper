@@ -53,3 +53,15 @@ export const { data: clipsApiConfig } = useWebExtensionStorage<ClipsApiConfig>(
   "clips-api-config",
   DEFAULT_CLIPS_API_CONFIG,
 );
+
+/**
+ * 语言设置
+ */
+export type LocaleCode = "zh" | "en";
+
+export const DEFAULT_LOCALE: LocaleCode = "zh";
+
+export const { data: appLocale } = useWebExtensionStorage<LocaleCode>(
+  "app-locale",
+  DEFAULT_LOCALE,
+);

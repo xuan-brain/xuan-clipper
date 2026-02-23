@@ -4,6 +4,7 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import AboutSettings from "./components/AboutSettings.vue";
 import ClipsSettings from "./components/ClipsSettings.vue";
+import LanguageSwitcher from "./components/LanguageSwitcher.vue";
 import PaperSettings from "./components/PaperSettings.vue";
 import SettingsSidebar from "./components/SettingsSidebar.vue";
 
@@ -16,13 +17,16 @@ const activeTab = ref<TabType>("paper");
   <main class="min-h-screen bg-gray-100 dark:bg-gray-900">
     <div class="max-w-5xl mx-auto px-4 py-8">
       <!-- Header -->
-      <header class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          {{ t("options.title") }}
-        </h1>
-        <p class="text-gray-500 dark:text-gray-400 mt-1">
-          {{ t("options.subtitle") }}
-        </p>
+      <header class="mb-8 flex items-start justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {{ t("options.title") }}
+          </h1>
+          <p class="text-gray-500 dark:text-gray-400 mt-1">
+            {{ t("options.subtitle") }}
+          </p>
+        </div>
+        <LanguageSwitcher />
       </header>
 
       <!-- Two-column layout -->

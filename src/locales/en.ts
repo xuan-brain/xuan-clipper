@@ -2,6 +2,7 @@ export default {
   common: {
     refresh: "Refresh",
     settings: "Settings",
+    language: "Language",
   },
   popup: {
     detecting: "Detecting page type...",

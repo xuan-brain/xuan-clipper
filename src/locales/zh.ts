@@ -2,6 +2,7 @@ export default {
   common: {
     refresh: "刷新",
     settings: "设置",
+    language: "语言",
   },
   popup: {
     detecting: "检测页面类型...",
