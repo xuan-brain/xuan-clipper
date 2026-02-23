@@ -11,11 +11,11 @@ import App from "./views/App.vue";
 
 // Firefox `browser.tabs.executeScript()` requires scripts return a primitive value
 (() => {
-  console.info("[vitesse-webext] Hello world from content script");
+  console.info("[xuan-clipper] Hello world from content script");
 
   // communication example: send previous tab title from background page
   onMessage("tab-prev", ({ data }) => {
-    console.log(`[vitesse-webext] Navigate from page "${data.title}"`);
+    console.log(`[xuan-clipper] Navigate from page "${data.title}"`);
   });
 
   // 处理页面类型查询请求
