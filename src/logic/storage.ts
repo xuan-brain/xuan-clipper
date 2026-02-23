@@ -33,3 +33,23 @@ export const { data: apiConfig } = useWebExtensionStorage<ApiConfig>(
   "api-config",
   DEFAULT_API_CONFIG,
 );
+
+/**
+ * Clips API 配置
+ */
+export interface ClipsApiConfig {
+  enabled: boolean;
+  endpoint: string;
+  timeout: number;
+}
+
+export const DEFAULT_CLIPS_API_CONFIG: ClipsApiConfig = {
+  enabled: true,
+  endpoint: "http://127.0.0.1:3030/api/clips",
+  timeout: 30000, // 30 seconds
+};
+
+export const { data: clipsApiConfig } = useWebExtensionStorage<ClipsApiConfig>(
+  "clips-api-config",
+  DEFAULT_CLIPS_API_CONFIG,
+);

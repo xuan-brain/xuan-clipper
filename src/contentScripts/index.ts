@@ -1,4 +1,4 @@
-import type {ExportMarkdownResponse, ImportPaperResponse, PageTypeResponse} from "~/logic/messaging";
+import type {ExportMarkdownResponse, ImportClipsResponse, ImportPaperResponse, PageTypeResponse} from "~/logic/messaging";
 import { createApp } from "vue";
 import { onMessage } from "webext-bridge/content-script";
 import { setupApp } from "~/logic/common-setup";
@@ -6,6 +6,7 @@ import { convertToMarkdown } from "~/logic/markdown-converter";
 import { MESSAGE_TYPES } from "~/logic/messaging";
 import { pageDetector } from "~/logic/page-detector";
 import { extractPaperContent } from "~/logic/paper-extractor";
+import { extractWebpageMetadata } from "~/logic/webpage-metadata-extractor";
 import App from "./views/App.vue";
 
 // Firefox `browser.tabs.executeScript()` requires scripts return a primitive value
@@ -71,6 +72,34 @@ import App from "./views/App.vue";
         return {
           success: true,
           markdown,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
+    },
+  );
+
+  // 处理导入 Clips 操作
+  onMessage(
+    MESSAGE_TYPES.IMPORT_CLIPS,
+    async (): Promise<ImportClipsResponse> => {
+      console.log("[xuan-clipper] Import clips triggered");
+      try {
+        // 提取网页元数据
+        const metadata = extractWebpageMetadata(document, window.location.href);
+
+        // 转换为 Markdown
+        const markdown = convertToMarkdown(document);
+
+        return {
+          success: true,
+          clipsData: {
+            ...metadata,
+            content: markdown,
+          },
         };
       } catch (error) {
         return {

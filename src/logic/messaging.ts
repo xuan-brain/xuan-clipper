@@ -17,6 +17,8 @@ export const MESSAGE_TYPES = {
   IMPORT_PAPER: "import-paper",
   /** Popup -> Background: 导出 Markdown 操作 */
   EXPORT_MARKDOWN: "export-markdown",
+  /** Popup -> Background: 导入 Clips 操作 */
+  IMPORT_CLIPS: "import-clips",
 } as const;
 
 // ============ 请求/响应类型 ============
@@ -67,4 +69,35 @@ export interface ExportMarkdownResponse {
   success: boolean;
   markdown?: string;
   error?: string;
+}
+
+/**
+ * 导入 Clips 请求
+ */
+export interface ImportClipsRequest {
+  // Future: clip options
+}
+
+/**
+ * 导入 Clips 响应
+ */
+export interface ImportClipsResponse {
+  success: boolean;
+  clipsData?: ClipsData;
+  error?: string;
+}
+
+/**
+ * Clips 数据结构
+ */
+export interface ClipsData {
+  author: string;
+  content: string; // Markdown
+  excerpt: string;
+  published_date: string | null;
+  source_domain: string;
+  tags: string[];
+  thumbnail_url: string | null;
+  title: string;
+  url: string;
 }

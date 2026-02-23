@@ -1,6 +1,8 @@
 import type { Tabs } from "webextension-polyfill";
 import type {
+  ClipsData,
   ExportMarkdownResponse,
+  ImportClipsResponse,
   ImportPaperResponse,
   PageTypeResponse,
 } from "~/logic/messaging";
@@ -8,7 +10,7 @@ import { marked } from "marked";
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { getMessages } from "~/locales";
 import { MESSAGE_TYPES } from "~/logic/messaging";
-import { apiConfig } from "~/logic/storage";
+import { apiConfig, clipsApiConfig } from "~/logic/storage";
 
 // only on dev mode
 if (import.meta.hot) {
@@ -250,6 +252,123 @@ onMessage(
     }
   },
 );
+
+// 处理导入 Clips 请求: Popup -> Background -> Content Script -> 调用API -> 显示通知
+onMessage(
+  MESSAGE_TYPES.IMPORT_CLIPS,
+  async (): Promise<ImportClipsResponse> => {
+    console.log("[xuan-clipper] IMPORT_CLIPS message received");
+    const i18n = getMessages();
+
+    // 获取当前窗口的活动标签页
+    const [tab] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    console.log("[xuan-clipper] Active tab:", tab?.id, tab?.url);
+
+    if (!tab?.id) {
+      console.log("[xuan-clipper] No active tab, showing notification");
+      await showNotification(i18n.notifications?.importFailed || "Import Failed", "No active tab found");
+      return { success: false, error: "No active tab found" };
+    }
+
+    // 检查是否为受限页面
+    if (
+      tab.url?.startsWith("chrome://") ||
+      tab.url?.startsWith("edge://") ||
+      tab.url?.startsWith("about:") ||
+      tab.url?.startsWith("chrome-extension://") ||
+      tab.url?.startsWith("moz-extension://")
+    ) {
+      console.log("[xuan-clipper] Restricted page, showing notification");
+      await showNotification(i18n.notifications?.importFailed || "Import Failed", "Cannot access this page");
+      return { success: false, error: "Cannot access this page" };
+    }
+
+    try {
+      // 转发到 Content Script 获取 Clips 数据
+      console.log("[xuan-clipper] Sending message to content script...");
+      const response = await sendMessage<ImportClipsResponse>(
+        MESSAGE_TYPES.IMPORT_CLIPS,
+        {},
+        { context: "content-script", tabId: tab.id },
+      );
+      console.log("[xuan-clipper] Content script response:", response.success);
+
+      if (!response.success || !response.clipsData) {
+        console.log("[xuan-clipper] Content extraction failed, showing notification");
+        await showNotification(
+          i18n.notifications?.importFailed || "Import Failed",
+          response.error || i18n.notifications?.clipsExtractFailed || "Failed to extract webpage metadata",
+        );
+        return { success: false, error: response.error };
+      }
+
+      // 发送到 API
+      console.log("[xuan-clipper] Sending to Clips API...");
+      const apiResult = await sendClipsToApi(response.clipsData);
+      console.log("[xuan-clipper] Clips API result:", apiResult);
+
+      if (apiResult.success) {
+        console.log("[xuan-clipper] Clips API success, showing notification");
+        await showNotification(
+          i18n.notifications?.clipsSuccess || i18n.notifications?.importSuccess || "Import Successful",
+          i18n.notifications?.clipsSuccessMessage || "Webpage has been saved to clips",
+        );
+      } else {
+        console.log("[xuan-clipper] Clips API failed, showing notification");
+        await showNotification(
+          i18n.notifications?.importFailed || "Import Failed",
+          apiResult.error || i18n.notifications?.networkError || "Network error",
+        );
+      }
+
+      return {
+        success: true,
+        clipsData: response.clipsData,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("[xuan-clipper] Error in IMPORT_CLIPS handler:", error);
+      await showNotification(i18n.notifications?.importFailed || "Import Failed", errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  },
+);
+
+/**
+ * 发送 Clips 到 API
+ */
+async function sendClipsToApi(clipsData: ClipsData): Promise<{ success: boolean; error?: string }> {
+  if (!clipsApiConfig.value.enabled) {
+    return { success: false, error: "Clips API integration disabled" };
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), clipsApiConfig.value.timeout);
+
+  try {
+    const response = await fetch(clipsApiConfig.value.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(clipsData),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      return { success: false, error: `Server error: ${response.status}` };
+    }
+    return { success: true };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      return { success: false, error: "Request timeout" };
+    }
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
+  }
+}
 
 /**
  * 发送 HTML 到 API

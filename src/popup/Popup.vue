@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type {
   ExportMarkdownResponse,
+  ImportClipsResponse,
   ImportPaperResponse,
   PageTypeResponse,
 } from "~/logic/messaging";
@@ -87,6 +88,25 @@ async function handleExportMarkdown() {
   window.close();
 }
 
+// 处理导入 Clips 操作
+async function handleImportClips() {
+  try {
+    const response = await sendMessage<ImportClipsResponse>(
+      MESSAGE_TYPES.IMPORT_CLIPS,
+      {},
+      { context: "background" },
+    );
+
+    if (!response.success) {
+      console.error("Import clips failed:", response.error);
+    }
+  } catch (e) {
+    console.error("Import clips failed:", e);
+  }
+  // 操作完成后关闭弹窗
+  window.close();
+}
+
 // 打开设置页面
 function openOptionsPage() {
   browser.runtime.openOptionsPage();
@@ -161,13 +181,22 @@ onMounted(() => {
         <div class="text-xs text-gray-400 mb-3">
           {{ t("popup.canConvertToMarkdown") }}
         </div>
-        <button
-          class="w-full flex items-center justify-center px-4 py-2 rounded-lg bg-blue-500 text-white font-medium hover:bg-blue-600 transition-colors"
-          @click="handleExportMarkdown"
-        >
-          <div class="i-carbon-download mr-2" />
-          {{ t("popup.exportMarkdown") }}
-        </button>
+        <div class="flex gap-2">
+          <button
+            class="flex-1 flex items-center justify-center px-4 py-2 rounded-lg bg-blue-500 text-white font-medium hover:bg-blue-600 transition-colors"
+            @click="handleExportMarkdown"
+          >
+            <div class="i-carbon-download mr-2" />
+            {{ t("popup.exportMarkdown") }}
+          </button>
+          <button
+            class="flex-1 flex items-center justify-center px-4 py-2 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 transition-colors"
+            @click="handleImportClips"
+          >
+            <div class="i-carbon-add mr-2" />
+            {{ t("popup.importClips") }}
+          </button>
+        </div>
       </div>
     </div>
 
