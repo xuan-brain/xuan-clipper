@@ -48,16 +48,16 @@ export default i18n;
 
 // 导出当前语言，供非 Vue 组件使用
 export function getCurrentLocale(): string {
-  return i18n.locale.value as string;
+  return i18n.global.locale.value as string;
 }
 
 // 导出翻译函数，供非 Vue 组件使用
 export function getMessages() {
-  const locale = i18n.locale.value as string;
+  const locale = i18n.global.locale.value as string;
   return messages[locale as keyof typeof messages];
 }
 
 // 设置语言
 export function setLocale(locale: LocaleCode) {
-  i18n.locale.value = locale;
+  i18n.global.locale.value = locale;
 }
