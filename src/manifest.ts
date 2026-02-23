@@ -1,10 +1,10 @@
-import fs from 'fs-extra'
-import type { Manifest } from 'webextension-polyfill'
-import type PkgType from '../package.json'
-import { isDev, isFirefox, port, r } from '../scripts/utils'
+import type { Manifest } from "webextension-polyfill";
+import type PkgType from "../package.json";
+import fs from "fs-extra";
+import { isDev, isFirefox, port, r } from "../scripts/utils";
 
 export async function getManifest() {
-  const pkg = await fs.readJSON(r('package.json')) as typeof PkgType
+  const pkg = (await fs.readJSON(r("package.json"))) as typeof PkgType;
 
   // update this file to update this manifest.json
   // can also be conditional based on your need
@@ -14,78 +14,72 @@ export async function getManifest() {
     version: pkg.version,
     description: pkg.description,
     action: {
-      default_icon: 'assets/icon-512.png',
-      default_popup: 'dist/popup/index.html',
+      default_icon: "assets/64x64.png",
+      default_popup: "dist/popup/index.html",
+      default_title: "Xuan Clipper - 智能论文与网页提取",
     },
     options_ui: {
-      page: 'dist/options/index.html',
+      page: "dist/options/index.html",
       open_in_tab: true,
     },
     background: isFirefox
       ? {
-          scripts: ['dist/background/index.mjs'],
-          type: 'module',
+          scripts: ["dist/background/index.mjs"],
+          type: "module",
         }
       : {
-          service_worker: 'dist/background/index.mjs',
+          service_worker: "dist/background/index.mjs",
         },
     icons: {
-      16: 'assets/icon-512.png',
-      48: 'assets/icon-512.png',
-      128: 'assets/icon-512.png',
+      16: "assets/32x32.png",
+      48: "assets/64x64.png",
+      128: "assets/128x128.png",
     },
+    // Permissions required for the extension
     permissions: [
-      'tabs',
-      'storage',
-      'activeTab',
-      'sidePanel',
+      "tabs", // Access tab information for page detection
+      "storage", // Store configuration and cache
+      "activeTab", // Access current tab content
+      "contextMenus", // Right-click menu for quick actions
+      "clipboardWrite", // Copy Markdown to clipboard
+      "scripting", // Dynamic script injection
+      "nativeMessaging", // Communicate with local programs
+      "notifications", // Show import result notifications
     ],
-    host_permissions: ['*://*/*'],
+    // Optional: Allow users to control site access
+    host_permissions: ["*://*/*"],
     content_scripts: [
       {
-        matches: [
-          '<all_urls>',
-        ],
-        js: [
-          'dist/contentScripts/index.global.js',
-        ],
+        matches: ["<all_urls>"],
+        js: ["dist/contentScripts/index.global.js"],
       },
     ],
     web_accessible_resources: [
       {
-        resources: ['dist/contentScripts/style.css'],
-        matches: ['<all_urls>'],
+        resources: [
+          "dist/contentScripts/style.css",
+          "dist/markdown-viewer/index.html",
+        ],
+        matches: ["<all_urls>"],
       },
     ],
     content_security_policy: {
       extension_pages: isDev
-        // this is required on dev for Vite script to load
-        ? `script-src \'self\' http://localhost:${port}; object-src \'self\'`
-        : 'script-src \'self\'; object-src \'self\'',
+        ? // this is required on dev for Vite script to load
+          `script-src 'self' http://localhost:${port}; object-src 'self'`
+        : "script-src 'self'; object-src 'self'",
     },
-  }
-
-  // add sidepanel
-  if (isFirefox) {
-    manifest.sidebar_action = {
-      default_panel: 'dist/sidepanel/index.html',
-    }
-  }
-  else {
-    // the sidebar_action does not work for chromium based
-    (manifest as any).side_panel = {
-      default_path: 'dist/sidepanel/index.html',
-    }
-  }
+  };
 
   // FIXME: not work in MV3
-  if (isDev && false) {
-    // for content script, as browsers will cache them for each reload,
-    // we use a background script to always inject the latest version
-    // see src/background/contentScriptHMR.ts
-    delete manifest.content_scripts
-    manifest.permissions?.push('webNavigation')
+  // for content script, as browsers will cache them for each reload,
+  // we use a background script to always inject the latest version
+  // see src/background/contentScriptHMR.ts
+  // Currently disabled - re-enable by changing condition to: isDev
+  if (false) {
+    delete manifest.content_scripts;
+    manifest.permissions?.push("webNavigation");
   }
 
-  return manifest
+  return manifest;
 }

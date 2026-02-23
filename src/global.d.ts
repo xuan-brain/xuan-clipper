@@ -1,8 +1,17 @@
-declare const __DEV__: boolean
-/** Extension name, defined in packageJson.name */
-declare const __NAME__: string
+import type { Browser } from "webextension-polyfill";
 
-declare module '*.vue' {
-  const component: any
-  export default component
+declare global {
+  const __DEV__: boolean;
+  const __NAME__: string;
+  const browser: Browser;
+
+  namespace NodeJS {
+    interface Global {
+      __DEV__: boolean;
+      __NAME__: string;
+      browser: Browser;
+    }
+  }
 }
+
+export {};

@@ -1,18 +1,50 @@
 <script setup lang="ts">
-import logo from '~/assets/logo.svg'
-import { storageDemo } from '~/logic/storage'
+import type {TabType} from "./components/SettingsSidebar.vue";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+import AboutSettings from "./components/AboutSettings.vue";
+import ClipsSettings from "./components/ClipsSettings.vue";
+import LanguageSwitcher from "./components/LanguageSwitcher.vue";
+import PaperSettings from "./components/PaperSettings.vue";
+import SettingsSidebar from "./components/SettingsSidebar.vue";
+
+const { t } = useI18n();
+
+const activeTab = ref<TabType>("paper");
 </script>
 
 <template>
-  <main class="px-4 py-10 text-center text-gray-700 dark:text-gray-200">
-    <img :src="logo" class="icon-btn mx-2 text-2xl" alt="extension icon">
-    <div>Options</div>
-    <SharedSubtitle />
+  <main class="min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div class="max-w-5xl mx-auto px-4 py-8">
+      <!-- Header -->
+      <header class="mb-8 flex items-start justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {{ t("options.title") }}
+          </h1>
+          <p class="text-gray-500 dark:text-gray-400 mt-1">
+            {{ t("options.subtitle") }}
+          </p>
+        </div>
+        <LanguageSwitcher />
+      </header>
 
-    <input v-model="storageDemo" class="border border-gray-400 rounded px-2 py-1 mt-2">
+      <!-- Two-column layout -->
+      <div class="flex gap-6">
+        <!-- Left sidebar -->
+        <aside>
+          <SettingsSidebar v-model:active-tab="activeTab" />
+        </aside>
 
-    <div class="mt-4">
-      Powered by Vite <pixelarticons-zap class="align-middle inline-block" />
+        <!-- Right content area -->
+        <main class="flex-1">
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
+            <PaperSettings v-if="activeTab === 'paper'" />
+            <ClipsSettings v-else-if="activeTab === 'clips'" />
+            <AboutSettings v-else-if="activeTab === 'about'" />
+          </div>
+        </main>
+      </div>
     </div>
   </main>
 </template>

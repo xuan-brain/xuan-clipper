@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__acp__Write",
+      "mcp__acp__Bash",
+      "mcp__acp__Edit",
+      "mcp__zread__read_file",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm build)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
