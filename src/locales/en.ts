@@ -40,4 +40,43 @@ export default {
     networkError: "Network connection failed",
     timeout: "Request timeout",
   },
+  options: {
+    title: "Settings",
+    subtitle: "Configure Xuan Clipper extension options",
+    tabs: {
+      paper: "Paper",
+      clips: "Clips",
+      about: "About",
+    },
+    paper: {
+      detection: "Page Detection",
+      enableUrlRules: "Enable URL Rules Detection",
+      enableUrlRulesDesc: "Automatically identify academic sites by URL patterns",
+      enableMetaTags: "Enable Meta Tags Detection",
+      enableMetaTagsDesc: "Identify papers by citation_* meta tags",
+      enableJsonLd: "Enable JSON-LD Detection",
+      enableJsonLdDesc: "Identify papers by structured data",
+      apiConfig: "API Configuration",
+    },
+    clips: {
+      apiConfig: "API Configuration",
+      metadata: "Metadata Extraction",
+      metadataDesc: "Clips feature automatically extracts page metadata like author, excerpt, published date, etc.",
+    },
+    common: {
+      enabled: "Enabled",
+      endpoint: "API Endpoint",
+      timeout: "Timeout (ms)",
+    },
+    about: {
+      description: "About",
+      descriptionText: "Xuan Clipper is a browser extension that helps you quickly save academic papers and web content to your local system.",
+      features: "Features",
+      feature1: "Automatically identify academic paper pages",
+      feature2: "Extract paper metadata information",
+      feature3: "Save web content as Markdown",
+      links: "Links",
+      reportIssue: "Report Issue",
+    },
+  },
 };

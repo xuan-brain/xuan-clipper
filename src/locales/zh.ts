@@ -40,4 +40,43 @@ export default {
     networkError: "网络连接失败",
     timeout: "请求超时",
   },
+  options: {
+    title: "设置",
+    subtitle: "配置 Xuan Clipper 扩展选项",
+    tabs: {
+      paper: "论文",
+      clips: "剪藏",
+      about: "关于",
+    },
+    paper: {
+      detection: "页面检测",
+      enableUrlRules: "启用 URL 规则检测",
+      enableUrlRulesDesc: "根据 URL 模式自动识别学术网站",
+      enableMetaTags: "启用 Meta 标签检测",
+      enableMetaTagsDesc: "通过 citation_* meta 标签识别论文",
+      enableJsonLd: "启用 JSON-LD 检测",
+      enableJsonLdDesc: "通过结构化数据识别论文",
+      apiConfig: "API 配置",
+    },
+    clips: {
+      apiConfig: "API 配置",
+      metadata: "元数据提取",
+      metadataDesc: "剪藏功能会自动提取页面的作者、摘要、发布日期等元数据信息。",
+    },
+    common: {
+      enabled: "已启用",
+      endpoint: "API 端点",
+      timeout: "超时时间 (毫秒)",
+    },
+    about: {
+      description: "简介",
+      descriptionText: "Xuan Clipper 是一款浏览器扩展，帮助您快速保存学术论文和网页内容到本地系统。",
+      features: "功能特性",
+      feature1: "自动识别学术论文页面",
+      feature2: "提取论文元数据信息",
+      feature3: "保存网页内容为 Markdown",
+      links: "相关链接",
+      reportIssue: "反馈问题",
+    },
+  },
 };
