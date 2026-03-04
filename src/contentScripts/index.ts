@@ -148,8 +148,22 @@ import App from "./views/App.vue";
         { context: "background" },
       );
 
-      if (response.success) {
+      if (response.success && response.result) {
         console.log("[xuan-clipper] 服务器返回:", response.result);
+
+        // 尝试解析 JSON 并触发事件显示元数据面板
+        try {
+          const metadataList = JSON.parse(response.result);
+          if (Array.isArray(metadataList) && metadataList.length > 0) {
+            const metadata = metadataList[0];
+            // 发送自定义事件到 Vue 组件
+            window.dispatchEvent(new CustomEvent("xuan-clipper-paper-metadata", {
+              detail: metadata,
+            }));
+          }
+        } catch {
+          console.log("[xuan-clipper] 返回内容不是有效 JSON，跳过元数据展示");
+        }
       } else {
         console.error("[xuan-clipper] 发送论文 HTML 失败:", response.error);
       }
