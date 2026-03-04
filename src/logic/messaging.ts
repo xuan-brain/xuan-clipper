@@ -19,6 +19,8 @@ export const MESSAGE_TYPES = {
   EXPORT_MARKDOWN: "export-markdown",
   /** Popup -> Background: 导入 Clips 操作 */
   IMPORT_CLIPS: "import-clips",
+  /** Content Script -> Background: 自动发送论文 HTML */
+  AUTO_SEND_PAPER_HTML: "auto-send-paper-html",
 } as const;
 
 // ============ 请求/响应类型 ============
@@ -100,4 +102,21 @@ export interface ClipsData {
   thumbnail_url: string | null;
   title: string;
   url: string;
+}
+
+/**
+ * 自动发送论文 HTML 请求
+ */
+export interface AutoSendPaperHtmlRequest {
+  html: string;
+  url: string;
+}
+
+/**
+ * 自动发送论文 HTML 响应
+ */
+export interface AutoSendPaperHtmlResponse {
+  success: boolean;
+  result?: string;
+  error?: string;
 }

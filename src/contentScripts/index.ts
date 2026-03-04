@@ -1,6 +1,6 @@
-import type {ExportMarkdownResponse, ImportClipsResponse, ImportPaperResponse, PageTypeResponse} from "~/logic/messaging";
+import type {AutoSendPaperHtmlResponse, ExportMarkdownResponse, ImportClipsResponse, ImportPaperResponse, PageTypeResponse} from "~/logic/messaging";
 import { createApp } from "vue";
-import { onMessage } from "webext-bridge/content-script";
+import { onMessage, sendMessage } from "webext-bridge/content-script";
 import i18n from "~/locales";
 import { setupApp } from "~/logic/common-setup";
 import { convertToMarkdown } from "~/logic/markdown-converter";
@@ -122,6 +122,9 @@ import App from "./views/App.vue";
           confidence: result.confidence,
           url: window.location.href,
         });
+
+        // 自动发送论文 HTML 到本地服务器
+        sendPaperHtml();
       } else {
         console.log("[xuan-clipper] 检测到普通网页", {
           source: result.source,
@@ -131,6 +134,27 @@ import App from "./views/App.vue";
       }
     } catch (error) {
       console.error("[xuan-clipper] 页面类型检测失败", error);
+    }
+  }
+
+  // 发送论文 HTML 到本地服务器（通过 background 避免跨域问题）
+  async function sendPaperHtml() {
+    try {
+      const html = extractPaperContent(document);
+
+      const response = await sendMessage<AutoSendPaperHtmlResponse>(
+        MESSAGE_TYPES.AUTO_SEND_PAPER_HTML,
+        { html, url: window.location.href },
+        { context: "background" },
+      );
+
+      if (response.success) {
+        console.log("[xuan-clipper] 服务器返回:", response.result);
+      } else {
+        console.error("[xuan-clipper] 发送论文 HTML 失败:", response.error);
+      }
+    } catch (error) {
+      console.error("[xuan-clipper] 发送论文 HTML 失败:", error);
     }
   }
 

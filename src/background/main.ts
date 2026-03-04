@@ -1,5 +1,7 @@
 import type { Tabs } from "webextension-polyfill";
 import type {
+  AutoSendPaperHtmlRequest,
+  AutoSendPaperHtmlResponse,
   ClipsData,
   ExportMarkdownResponse,
   ImportClipsResponse,
@@ -332,6 +334,33 @@ onMessage(
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       console.error("[xuan-clipper] Error in IMPORT_CLIPS handler:", error);
       await showNotification(i18n.notifications?.importFailed || "Import Failed", errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  },
+);
+
+// 处理自动发送论文 HTML 请求: Content Script -> Background -> API
+onMessage(
+  MESSAGE_TYPES.AUTO_SEND_PAPER_HTML,
+  async ({ data }: { data: AutoSendPaperHtmlRequest }): Promise<AutoSendPaperHtmlResponse> => {
+    console.log("[xuan-clipper] AUTO_SEND_PAPER_HTML message received");
+
+    try {
+      const apiUrl = `http://127.0.0.1:1969/html?url=${encodeURIComponent(data.url)}`;
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: data.html,
+      });
+
+      const result = await response.text();
+      console.log("[xuan-clipper] 服务器返回:", result);
+
+      return { success: true, result };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("[xuan-clipper] 自动发送论文 HTML 失败:", error);
       return { success: false, error: errorMessage };
     }
   },
