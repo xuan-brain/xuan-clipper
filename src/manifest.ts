@@ -59,6 +59,9 @@ export async function getManifest() {
         resources: [
           "dist/contentScripts/style.css",
           "dist/markdown-viewer/index.html",
+          "assets/32x32.png",
+          "assets/64x64.png",
+          "assets/128x128.png",
         ],
         matches: ["<all_urls>"],
       },

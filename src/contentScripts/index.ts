@@ -1,6 +1,7 @@
 import type {ExportMarkdownResponse, ImportClipsResponse, ImportPaperResponse, PageTypeResponse} from "~/logic/messaging";
 import { createApp } from "vue";
 import { onMessage } from "webext-bridge/content-script";
+import i18n from "~/locales";
 import { setupApp } from "~/logic/common-setup";
 import { convertToMarkdown } from "~/logic/markdown-converter";
 import { MESSAGE_TYPES } from "~/logic/messaging";
@@ -158,5 +159,6 @@ import App from "./views/App.vue";
   document.body.appendChild(container);
   const app = createApp(App);
   setupApp(app);
+  app.use(i18n);
   app.mount(root);
 })();
