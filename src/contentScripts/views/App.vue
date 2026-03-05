@@ -245,7 +245,7 @@ onUnmounted(() => {
     >
       <!-- 标题栏 -->
       <div
-        class="flex items-center justify-between px-4 py-3 bg-teal-600 text-white"
+        class="flex items-center justify-between px-3 py-1.5 bg-teal-600 text-white"
       >
         <div class="flex items-center">
           <div class="i-carbon-document text-lg" />
@@ -262,7 +262,7 @@ onUnmounted(() => {
       </div>
 
       <!-- 元数据内容 -->
-      <div class="px-4 py-3 space-y-2 text-sm">
+      <div class="px-3 py-1.5 space-y-0.5 text-sm">
         <!-- 标题 -->
         <div class="font-semibold text-gray-800 leading-tight">
           {{ paperMetadata?.title }}
@@ -314,7 +314,7 @@ onUnmounted(() => {
       </div>
 
       <!-- 导入区域 -->
-      <div class="px-4 py-3 border-t border-gray-100">
+      <div class="px-3 py-0.5 border-t border-gray-100">
         <div class="flex items-center gap-2">
           <!-- 分类选择器 -->
           <div class="flex-1 min-w-0">
@@ -336,7 +336,7 @@ onUnmounted(() => {
 
           <!-- 导入按钮 -->
           <button
-            class="shrink-0 py-1.5 px-2.5 bg-teal-600 text-white text-xs font-medium rounded hover:bg-teal-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+            class="shrink-0 py-0.5 px-2 bg-teal-600 text-white text-xs font-medium rounded hover:bg-teal-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-1"
             :disabled="isImporting"
             @click="importPaper"
           >
@@ -365,26 +365,64 @@ onUnmounted(() => {
 <style>
 /* 自定义 Treeselect 样式以适应小面板 */
 .treeselect-custom .vue-treeselect {
-  font-size: 11px;
+  font-size: 10px !important;
 }
 
 .treeselect-custom .vue-treeselect__control {
-  min-height: 28px;
+  min-height: 20px !important;
+  height: 20px !important;
   border-radius: 4px;
   border-color: #d1d5db;
+  padding: 0 4px !important;
 }
 
 .treeselect-custom .vue-treeselect__control:hover {
   border-color: #9ca3af;
 }
 
+.treeselect-custom .vue-treeselect__value-container {
+  padding: 0 !important;
+  height: 18px !important;
+  line-height: 18px !important;
+}
+
+.treeselect-custom .vue-treeselect__input-container {
+  padding: 0 !important;
+  height: 18px !important;
+  line-height: 18px !important;
+}
+
+.treeselect-custom .vue-treeselect__input {
+  font-size: 10px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.treeselect-custom .vue-treeselect__placeholder {
+  font-size: 10px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+  padding: 0 !important;
+}
+
+.treeselect-custom .vue-treeselect__single-value {
+  font-size: 10px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+  padding: 0 !important;
+}
+
 .treeselect-custom .vue-treeselect__menu {
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 10px !important;
 }
 
 .treeselect-custom .vue-treeselect__option {
-  padding: 4px 8px;
+  padding: 2px 6px !important;
+  font-size: 10px !important;
+  line-height: 1.2 !important;
 }
 
 /* 确保下拉菜单在面板上方 */

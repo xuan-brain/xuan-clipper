@@ -8,7 +8,10 @@
       "Bash(pnpm typecheck:*)",
       "Bash(pnpm build)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(pnpm add vue3-treeselect)",
+      "Bash(timeout 15 pnpm dev:js)",
+      "mcp__web-reader__webReader"
     ]
   }
 }

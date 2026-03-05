@@ -40,10 +40,6 @@ export async function getManifest() {
       "tabs", // Access tab information for page detection
       "storage", // Store configuration and cache
       "activeTab", // Access current tab content
-      "contextMenus", // Right-click menu for quick actions
-      "clipboardWrite", // Copy Markdown to clipboard
-      "scripting", // Dynamic script injection
-      "nativeMessaging", // Communicate with local programs
       "notifications", // Show import result notifications
     ],
     // Optional: Allow users to control site access
