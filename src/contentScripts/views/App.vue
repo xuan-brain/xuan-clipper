@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { nextTick, onMounted, onUnmounted, ref } from "vue";
 import Treeselect from "vue3-treeselect";
 import { useI18n } from "vue-i18n";
 import "vue3-treeselect/dist/vue3-treeselect.css";
@@ -55,17 +55,22 @@ const categories = ref<TreeselectNode[]>([]);
 const selectedCategoryId = ref<string | null>(null);
 const isLoadingCategories = ref(false);
 const isImporting = ref(false);
+// Treeselect 组件引用
+const treeselectRef = ref<InstanceType<typeof Treeselect> | null>(null);
 
 // API 基础地址
 const API_BASE = "http://127.0.0.1:3030/api";
 
 // 转换 API 分类数据为 Treeselect 格式
 function transformCategories(nodes: CategoryNode[]): TreeselectNode[] {
-  return nodes.map(node => ({
-    id: node.id,
-    label: node.name,
-    children: node.children?.length ? transformCategories(node.children) : undefined,
-  }));
+  return nodes.map((node) => {
+    const transformed: TreeselectNode = {
+      id: String(node.id), // 确保id是字符串
+      label: node.name,
+      children: node.children?.length ? transformCategories(node.children) : undefined,
+    };
+    return transformed;
+  });
 }
 
 // 获取分类树
@@ -75,7 +80,21 @@ async function fetchCategories() {
     const response = await fetch(`${API_BASE}/categories/tree`);
     if (response.ok) {
       const data: CategoryNode[] = await response.json();
+      console.log("[xuan-clipper] 获取分类树 API 原始返回:", data);
       categories.value = transformCategories(data);
+      console.log("[xuan-clipper] 转换后的分类树:", categories.value);
+      // 打印所有可用的 id
+      const allIds: string[] = [];
+      function collectIds(nodes: TreeselectNode[]) {
+        for (const node of nodes) {
+          allIds.push(String(node.id));
+          if (node.children) {
+            collectIds(node.children);
+          }
+        }
+      }
+      collectIds(categories.value);
+      console.log("[xuan-clipper] 所有可用的分类 ID:", allIds);
     }
   }
   catch (error) {
@@ -92,7 +111,35 @@ async function fetchSelectedCategory() {
     const response = await fetch(`${API_BASE}/categories/selected`);
     if (response.ok) {
       const data = await response.json();
-      selectedCategoryId.value = data.selected_category_id;
+      console.log("[xuan-clipper] 获取选中分类 API 返回:", data);
+      console.log("[xuan-clipper] selected_category_id 类型:", typeof data.selected_category_id);
+      // 确保类型一致：将 id 转换为字符串
+      if (data.selected_category_id !== null && data.selected_category_id !== undefined) {
+        const idStr = String(data.selected_category_id);
+        console.log("[xuan-clipper] 转换后的 selectedCategoryId:", idStr, "类型:", typeof idStr);
+
+        // 使用组件的 select() 和 getNode() 方法来设置选中值
+        await nextTick();
+        if (treeselectRef.value) {
+          const node = treeselectRef.value.getNode(idStr);
+          console.log("[xuan-clipper] getNode 返回:", node);
+          if (node) {
+            treeselectRef.value.select(node);
+            console.log("[xuan-clipper] 通过 select() 设置选中节点成功");
+          }
+          else {
+            // 如果 getNode 找不到，回退到直接设置 v-model
+            selectedCategoryId.value = idStr;
+            console.log("[xuan-clipper] getNode 返回 null，回退到直接设置 v-model");
+          }
+        }
+        else {
+          // 如果组件引用不存在，回退到直接设置 v-model
+          selectedCategoryId.value = idStr;
+          console.log("[xuan-clipper] 组件引用不存在，回退到直接设置 v-model");
+        }
+        console.log("[xuan-clipper] 设置后 selectedCategoryId.value:", selectedCategoryId.value);
+      }
     }
   }
   catch (error) {
@@ -113,22 +160,17 @@ function formatAuthors(creators: PaperCreator[]): string {
 }
 
 // 监听论文元数据事件
-function handlePaperMetadata(event: CustomEvent<PaperMetadata>) {
+async function handlePaperMetadata(event: CustomEvent<PaperMetadata>) {
   paperMetadata.value = event.detail;
   show.value = true;
-  // 检测到论文时获取分类数据
-  fetchCategories();
-  fetchSelectedCategory();
+  // 先加载分类树，再设置选中分类（确保顺序正确）
+  await fetchCategories();
+  await fetchSelectedCategory();
 }
 
 // 关闭面板
 function closePanel() {
   show.value = false;
-}
-
-// 打开设置页面
-function openOptionsPage() {
-  browser.runtime.openOptionsPage();
 }
 
 // 导入论文
@@ -246,6 +288,7 @@ onUnmounted(() => {
           <!-- 分类选择器 -->
           <div class="flex-1 min-w-0">
             <Treeselect
+              ref="treeselectRef"
               v-model="selectedCategoryId"
               :options="categories"
               :placeholder="t('metadataPanel.selectCategoryPlaceholder')"
@@ -271,16 +314,6 @@ onUnmounted(() => {
             <span class="hidden sm:inline">{{ isImporting ? t("metadataPanel.importing") : t("metadataPanel.import") }}</span>
           </button>
         </div>
-      </div>
-
-      <!-- 底部操作 -->
-      <div class="flex justify-end px-4 py-2 border-t border-gray-100">
-        <button
-          class="text-xs text-gray-500 hover:text-gray-700 transition-colors"
-          @click="openOptionsPage"
-        >
-          {{ t("common.settings") }}
-        </button>
       </div>
     </div>
 

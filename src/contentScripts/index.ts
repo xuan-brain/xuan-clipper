@@ -196,6 +196,8 @@ import App from "./views/App.vue";
   shadowDOM.appendChild(root);
   document.body.appendChild(container);
   const app = createApp(App);
+  // 解决 vue3-treeselect 的兼容性警告
+  app.config.globalProperties.$createElement = () => {};
   setupApp(app);
   app.use(i18n);
   app.mount(root);
