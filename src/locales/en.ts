@@ -30,6 +30,17 @@ export default {
     content: "Content",
     noContent: "No content extracted",
   },
+  metadataPanel: {
+    paperDetected: "Paper Detected",
+    doi: "DOI",
+    selectCategory: "Select Category",
+    selectCategoryPlaceholder: "Select a category...",
+    noResults: "No results found",
+    noOptions: "No options available",
+    loading: "Loading...",
+    import: "Import Paper",
+    importing: "Importing...",
+  },
   notifications: {
     importSuccess: "Import Successful",
     importSuccessMessage: "Paper has been sent to local program",

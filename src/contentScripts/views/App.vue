@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
+import Treeselect from "vue3-treeselect";
 import { useI18n } from "vue-i18n";
+import "vue3-treeselect/dist/vue3-treeselect.css";
 import "uno.css";
 
 const { t } = useI18n();
@@ -32,11 +34,76 @@ interface PaperMetadata {
   url?: string;
 }
 
+// 分类树节点
+interface CategoryNode {
+  id: string;
+  name: string;
+  parent_id: string | null;
+  sort_order: number;
+  children: CategoryNode[];
+}
+
+// Treeselect 节点格式
+interface TreeselectNode {
+  id: string;
+  label: string;
+  children?: TreeselectNode[];
+}
+
 const paperMetadata = ref<PaperMetadata | null>(null);
+const categories = ref<TreeselectNode[]>([]);
+const selectedCategoryId = ref<string | null>(null);
+const isLoadingCategories = ref(false);
+const isImporting = ref(false);
+
+// API 基础地址
+const API_BASE = "http://127.0.0.1:3030/api";
+
+// 转换 API 分类数据为 Treeselect 格式
+function transformCategories(nodes: CategoryNode[]): TreeselectNode[] {
+  return nodes.map(node => ({
+    id: node.id,
+    label: node.name,
+    children: node.children?.length ? transformCategories(node.children) : undefined,
+  }));
+}
+
+// 获取分类树
+async function fetchCategories() {
+  isLoadingCategories.value = true;
+  try {
+    const response = await fetch(`${API_BASE}/categories/tree`);
+    if (response.ok) {
+      const data: CategoryNode[] = await response.json();
+      categories.value = transformCategories(data);
+    }
+  }
+  catch (error) {
+    console.error("Failed to fetch categories:", error);
+  }
+  finally {
+    isLoadingCategories.value = false;
+  }
+}
+
+// 获取当前选中的分类
+async function fetchSelectedCategory() {
+  try {
+    const response = await fetch(`${API_BASE}/categories/selected`);
+    if (response.ok) {
+      const data = await response.json();
+      selectedCategoryId.value = data.selected_category_id;
+    }
+  }
+  catch (error) {
+    console.error("Failed to fetch selected category:", error);
+  }
+}
 
 // 格式化作者列表
 function formatAuthors(creators: PaperCreator[]): string {
-  if (!creators || creators.length === 0) return "";
+  if (!creators || creators.length === 0)
+    return "";
   const names = creators.slice(0, 3).map(c => `${c.firstName} ${c.lastName}`);
   let result = names.join(", ");
   if (creators.length > 3) {
@@ -49,6 +116,9 @@ function formatAuthors(creators: PaperCreator[]): string {
 function handlePaperMetadata(event: CustomEvent<PaperMetadata>) {
   paperMetadata.value = event.detail;
   show.value = true;
+  // 检测到论文时获取分类数据
+  fetchCategories();
+  fetchSelectedCategory();
 }
 
 // 关闭面板
@@ -59,6 +129,40 @@ function closePanel() {
 // 打开设置页面
 function openOptionsPage() {
   browser.runtime.openOptionsPage();
+}
+
+// 导入论文
+async function importPaper() {
+  if (!paperMetadata.value || isImporting.value)
+    return;
+
+  isImporting.value = true;
+  try {
+    // TODO: 调用实际的导入 API
+    console.log("Importing paper with category:", selectedCategoryId.value);
+    console.log("Paper metadata:", paperMetadata.value);
+
+    // 这里可以添加实际的 API 调用
+    // const response = await fetch(`${API_BASE}/papers/import`, {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({
+    //     ...paperMetadata.value,
+    //     category_id: selectedCategoryId.value
+    //   })
+    // });
+
+    // 暂时模拟成功
+    console.log(t("notifications.importSuccess"));
+    closePanel();
+  }
+  catch (error) {
+    console.error("Failed to import paper:", error);
+    console.error(t("notifications.importFailed"));
+  }
+  finally {
+    isImporting.value = false;
+  }
 }
 
 // 组件挂载时检测页面类型并监听事件
@@ -84,7 +188,7 @@ onUnmounted(() => {
       <div class="flex items-center justify-between px-4 py-3 bg-teal-600 text-white">
         <div class="flex items-center">
           <div class="i-carbon-document text-lg" />
-          <span class="ml-2 font-medium text-sm">论文已识别</span>
+          <span class="ml-2 font-medium text-sm">{{ t("metadataPanel.paperDetected") }}</span>
         </div>
         <button
           class="hover:bg-teal-700 rounded p-1 transition-colors"
@@ -125,7 +229,7 @@ onUnmounted(() => {
 
         <!-- DOI -->
         <div v-if="paperMetadata?.DOI" class="text-xs">
-          <span class="text-gray-400">DOI: </span>
+          <span class="text-gray-400">{{ t("metadataPanel.doi") }}: </span>
           <a
             :href="`https://doi.org/${paperMetadata.DOI}`"
             target="_blank"
@@ -133,6 +237,39 @@ onUnmounted(() => {
           >
             {{ paperMetadata.DOI }}
           </a>
+        </div>
+      </div>
+
+      <!-- 导入区域 -->
+      <div class="px-4 py-3 border-t border-gray-100">
+        <div class="flex items-center gap-2">
+          <!-- 分类选择器 -->
+          <div class="flex-1 min-w-0">
+            <Treeselect
+              v-model="selectedCategoryId"
+              :options="categories"
+              :placeholder="t('metadataPanel.selectCategoryPlaceholder')"
+              :disabled="isLoadingCategories"
+              :clearable="true"
+              :searchable="true"
+              :default-expand-level="Infinity"
+              :no-results-text="t('metadataPanel.noResults')"
+              :no-options-text="t('metadataPanel.noOptions')"
+              :loading-text="t('metadataPanel.loading')"
+              class="treeselect-custom"
+            />
+          </div>
+
+          <!-- 导入按钮 -->
+          <button
+            class="shrink-0 py-2 px-3 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+            :disabled="isImporting"
+            @click="importPaper"
+          >
+            <div v-if="isImporting" class="i-carbon-restart animate-spin" />
+            <div v-else class="i-carbon-import" />
+            <span class="hidden sm:inline">{{ isImporting ? t("metadataPanel.importing") : t("metadataPanel.import") }}</span>
+          </button>
         </div>
       </div>
 
@@ -156,3 +293,39 @@ onUnmounted(() => {
     </button>
   </div>
 </template>
+
+<style>
+/* 自定义 Treeselect 样式以适应小面板 */
+.treeselect-custom .vue-treeselect {
+  font-size: 12px;
+}
+
+.treeselect-custom .vue-treeselect__control {
+  min-height: 32px;
+  border-radius: 6px;
+  border-color: #d1d5db;
+}
+
+.treeselect-custom .vue-treeselect__control:hover {
+  border-color: #9ca3af;
+}
+
+.treeselect-custom .vue-treeselect__placeholder,
+.treeselect-custom .vue-treeselect__single-value {
+  line-height: 30px;
+}
+
+.treeselect-custom .vue-treeselect__menu {
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.treeselect-custom .vue-treeselect__option {
+  padding: 6px 10px;
+}
+
+/* 确保下拉菜单在面板上方 */
+.vue-treeselect__menu-container {
+  z-index: 2147483647 !important;
+}
+</style>

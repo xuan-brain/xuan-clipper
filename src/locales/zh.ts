@@ -30,6 +30,17 @@ export default {
     content: "正文",
     noContent: "未能提取到正文内容",
   },
+  metadataPanel: {
+    paperDetected: "论文已识别",
+    doi: "DOI",
+    selectCategory: "选择分类",
+    selectCategoryPlaceholder: "请选择分类...",
+    noResults: "未找到匹配结果",
+    noOptions: "暂无分类选项",
+    loading: "加载中...",
+    import: "导入论文",
+    importing: "导入中...",
+  },
   notifications: {
     importSuccess: "导入成功",
     importSuccessMessage: "论文已发送到本地程序",
