@@ -67,7 +67,9 @@ function transformCategories(nodes: CategoryNode[]): TreeselectNode[] {
     const transformed: TreeselectNode = {
       id: String(node.id), // 确保id是字符串
       label: node.name,
-      children: node.children?.length ? transformCategories(node.children) : undefined,
+      children: node.children?.length
+        ? transformCategories(node.children)
+        : undefined,
     };
     return transformed;
   });
@@ -96,11 +98,9 @@ async function fetchCategories() {
       collectIds(categories.value);
       console.log("[xuan-clipper] 所有可用的分类 ID:", allIds);
     }
-  }
-  catch (error) {
+  } catch (error) {
     console.error("Failed to fetch categories:", error);
-  }
-  finally {
+  } finally {
     isLoadingCategories.value = false;
   }
 }
@@ -112,11 +112,22 @@ async function fetchSelectedCategory() {
     if (response.ok) {
       const data = await response.json();
       console.log("[xuan-clipper] 获取选中分类 API 返回:", data);
-      console.log("[xuan-clipper] selected_category_id 类型:", typeof data.selected_category_id);
+      console.log(
+        "[xuan-clipper] selected_category_id 类型:",
+        typeof data.selected_category_id,
+      );
       // 确保类型一致：将 id 转换为字符串
-      if (data.selected_category_id !== null && data.selected_category_id !== undefined) {
+      if (
+        data.selected_category_id !== null &&
+        data.selected_category_id !== undefined
+      ) {
         const idStr = String(data.selected_category_id);
-        console.log("[xuan-clipper] 转换后的 selectedCategoryId:", idStr, "类型:", typeof idStr);
+        console.log(
+          "[xuan-clipper] 转换后的 selectedCategoryId:",
+          idStr,
+          "类型:",
+          typeof idStr,
+        );
 
         // 使用组件的 select() 和 getNode() 方法来设置选中值
         await nextTick();
@@ -126,32 +137,33 @@ async function fetchSelectedCategory() {
           if (node) {
             treeselectRef.value.select(node);
             console.log("[xuan-clipper] 通过 select() 设置选中节点成功");
-          }
-          else {
+          } else {
             // 如果 getNode 找不到，回退到直接设置 v-model
             selectedCategoryId.value = idStr;
-            console.log("[xuan-clipper] getNode 返回 null，回退到直接设置 v-model");
+            console.log(
+              "[xuan-clipper] getNode 返回 null，回退到直接设置 v-model",
+            );
           }
-        }
-        else {
+        } else {
           // 如果组件引用不存在，回退到直接设置 v-model
           selectedCategoryId.value = idStr;
           console.log("[xuan-clipper] 组件引用不存在，回退到直接设置 v-model");
         }
-        console.log("[xuan-clipper] 设置后 selectedCategoryId.value:", selectedCategoryId.value);
+        console.log(
+          "[xuan-clipper] 设置后 selectedCategoryId.value:",
+          selectedCategoryId.value,
+        );
       }
     }
-  }
-  catch (error) {
+  } catch (error) {
     console.error("Failed to fetch selected category:", error);
   }
 }
 
 // 格式化作者列表
 function formatAuthors(creators: PaperCreator[]): string {
-  if (!creators || creators.length === 0)
-    return "";
-  const names = creators.slice(0, 3).map(c => `${c.firstName} ${c.lastName}`);
+  if (!creators || creators.length === 0) return "";
+  const names = creators.slice(0, 3).map((c) => `${c.firstName} ${c.lastName}`);
   let result = names.join(", ");
   if (creators.length > 3) {
     result += " et al.";
@@ -175,8 +187,7 @@ function closePanel() {
 
 // 导入论文
 async function importPaper() {
-  if (!paperMetadata.value || isImporting.value)
-    return;
+  if (!paperMetadata.value || isImporting.value) return;
 
   isImporting.value = true;
   try {
@@ -197,28 +208,34 @@ async function importPaper() {
     // 暂时模拟成功
     console.log(t("notifications.importSuccess"));
     closePanel();
-  }
-  catch (error) {
+  } catch (error) {
     console.error("Failed to import paper:", error);
     console.error(t("notifications.importFailed"));
-  }
-  finally {
+  } finally {
     isImporting.value = false;
   }
 }
 
 // 组件挂载时检测页面类型并监听事件
 onMounted(() => {
-  window.addEventListener("xuan-clipper-paper-metadata", handlePaperMetadata as EventListener);
+  window.addEventListener(
+    "xuan-clipper-paper-metadata",
+    handlePaperMetadata as EventListener,
+  );
 });
 
 onUnmounted(() => {
-  window.removeEventListener("xuan-clipper-paper-metadata", handlePaperMetadata as EventListener);
+  window.removeEventListener(
+    "xuan-clipper-paper-metadata",
+    handlePaperMetadata as EventListener,
+  );
 });
 </script>
 
 <template>
-  <div class="fixed right-0 bottom-0 m-5 z-[2147483647] flex items-end font-sans select-none leading-1em">
+  <div
+    class="fixed right-0 bottom-0 m-5 z-[2147483647] flex items-end font-sans select-none leading-1em"
+  >
     <!-- 论文元数据面板 -->
     <div
       v-show="show && paperMetadata"
@@ -227,10 +244,14 @@ onUnmounted(() => {
       :class="show && paperMetadata ? 'opacity-100' : 'opacity-0'"
     >
       <!-- 标题栏 -->
-      <div class="flex items-center justify-between px-4 py-3 bg-teal-600 text-white">
+      <div
+        class="flex items-center justify-between px-4 py-3 bg-teal-600 text-white"
+      >
         <div class="flex items-center">
           <div class="i-carbon-document text-lg" />
-          <span class="ml-2 font-medium text-sm">{{ t("metadataPanel.paperDetected") }}</span>
+          <span class="ml-2 font-medium text-sm">{{
+            t("metadataPanel.paperDetected")
+          }}</span>
         </div>
         <button
           class="hover:bg-teal-700 rounded p-1 transition-colors"
@@ -248,14 +269,24 @@ onUnmounted(() => {
         </div>
 
         <!-- 作者 -->
-        <div v-if="paperMetadata?.creators?.length" class="text-gray-600 text-xs">
+        <div
+          v-if="paperMetadata?.creators?.length"
+          class="text-gray-600 text-xs"
+        >
           {{ formatAuthors(paperMetadata.creators) }}
         </div>
 
         <!-- 期刊信息 -->
-        <div v-if="paperMetadata?.publicationTitle" class="text-gray-500 text-xs italic">
+        <div
+          v-if="paperMetadata?.publicationTitle"
+          class="text-gray-500 text-xs italic"
+        >
           {{ paperMetadata.publicationTitle }}
-          <span v-if="paperMetadata.volume || paperMetadata.issue || paperMetadata.pages">
+          <span
+            v-if="
+              paperMetadata.volume || paperMetadata.issue || paperMetadata.pages
+            "
+          >
             (
             <span v-if="paperMetadata.volume">{{ paperMetadata.volume }}</span>
             <span v-if="paperMetadata.issue">:{{ paperMetadata.issue }}</span>
@@ -305,13 +336,17 @@ onUnmounted(() => {
 
           <!-- 导入按钮 -->
           <button
-            class="shrink-0 py-2 px-3 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+            class="shrink-0 py-1.5 px-2.5 bg-teal-600 text-white text-xs font-medium rounded hover:bg-teal-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-1"
             :disabled="isImporting"
             @click="importPaper"
           >
             <div v-if="isImporting" class="i-carbon-restart animate-spin" />
             <div v-else class="i-carbon-import" />
-            <span class="hidden sm:inline">{{ isImporting ? t("metadataPanel.importing") : t("metadataPanel.import") }}</span>
+            <span class="hidden sm:inline">{{
+              isImporting
+                ? t("metadataPanel.importing")
+                : t("metadataPanel.import")
+            }}</span>
           </button>
         </div>
       </div>
@@ -330,12 +365,12 @@ onUnmounted(() => {
 <style>
 /* 自定义 Treeselect 样式以适应小面板 */
 .treeselect-custom .vue-treeselect {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .treeselect-custom .vue-treeselect__control {
-  min-height: 32px;
-  border-radius: 6px;
+  min-height: 28px;
+  border-radius: 4px;
   border-color: #d1d5db;
 }
 
@@ -343,18 +378,13 @@ onUnmounted(() => {
   border-color: #9ca3af;
 }
 
-.treeselect-custom .vue-treeselect__placeholder,
-.treeselect-custom .vue-treeselect__single-value {
-  line-height: 30px;
-}
-
 .treeselect-custom .vue-treeselect__menu {
-  border-radius: 6px;
-  font-size: 12px;
+  border-radius: 4px;
+  font-size: 11px;
 }
 
 .treeselect-custom .vue-treeselect__option {
-  padding: 6px 10px;
+  padding: 4px 8px;
 }
 
 /* 确保下拉菜单在面板上方 */
