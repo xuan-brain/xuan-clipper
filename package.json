@@ -3,7 +3,7 @@
   "displayName": "Xuan Clipper",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@9.7.1",
+  "packageManager": "yarn@1.22.22",
   "description": "智能论文与网页提取工具 - 自动识别并提取论文元信息，将网页转换为Markdown，通过Native Messaging与本地程序通信",
   "scripts": {
     "dev": "npm run clear && cross-env NODE_ENV=development run-p dev:*",
@@ -79,7 +79,7 @@
     "webextension-polyfill": "^0.12.0"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm lint-staged"
+    "pre-commit": "yarn lint-staged"
   },
   "lint-staged": {
     "*.{js,ts,tsx,vue,json,md}": "eslint --fix"

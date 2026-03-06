@@ -16,7 +16,7 @@
 - **扩展基础**: [Vitesse WebExt](https://github.com/antfu/vitesse-webext) 模板
 - **通信**: `webext-bridge` + `webextension-polyfill`
 - **样式**: UnoCSS
-- **包管理器**: pnpm
+- **包管理器**: yarn
 
 ## 项目结构
 
@@ -45,22 +45,22 @@ xuan-clipper/
 
 ```bash
 # 开发模式（Chrome）
-pnpm dev
+yarn dev
 
 # 开发模式（Firefox）
-pnpm dev-firefox
+yarn dev-firefox
 
 # 构建
-pnpm build
+yarn build
 
 # 代码检查
-pnpm lint
+yarn lint
 
 # 类型检查
-pnpm typecheck
+yarn typecheck
 
 # 测试
-pnpm test
+yarn test
 ```
 
 ## 核心模块说明

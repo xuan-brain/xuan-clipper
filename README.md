@@ -59,7 +59,7 @@
 ### Dev tools
 
 - [TypeScript](https://www.typescriptlang.org/)
-- [pnpm](https://pnpm.js.org/) - fast, disk space efficient package manager
+- [yarn](https://yarnpkg.com/) - fast, reliable package manager
 - [esno](https://github.com/antfu/esno) - TypeScript / ESNext node runtime powered by esbuild
 - [npm-run-all](https://github.com/mysticatea/npm-run-all) - Run multiple npm-scripts in parallel or sequential
 - [web-ext](https://github.com/mozilla/web-ext) - Streamlined experience for developing web extensions
@@ -103,34 +103,34 @@
 ### 安装依赖
 
 ```bash
-pnpm install
+yarn install
 ```
 
 ### 开发模式
 
 ```bash
 # Chrome/Edge 开发模式
-pnpm dev
+yarn dev
 
 # Firefox 开发模式
-pnpm dev-firefox
+yarn dev-firefox
 ```
 
 ### 构建
 
 ```bash
 # 生产构建
-pnpm build
+yarn build
 ```
 
 ### 其他命令
 
 ```bash
 # 代码检查
-pnpm lint
+yarn lint
 
 # 类型检查
-pnpm typecheck
+yarn typecheck
 ```
 
 ## 📝 使用说明
@@ -211,7 +211,7 @@ pnpm typecheck
 
 **Firefox:**
 ```bash
-pnpm start-firefox
+yarn start:firefox
 ```
 
 或者手动加载：

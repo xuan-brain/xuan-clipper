@@ -2,18 +2,18 @@ image:
   file: .gitpod.Dockerfile
 
 tasks:
-  - init: pnpm install && pnpm run build
+  - init: yarn install && yarn build
     name: dev
     command: |
       gp sync-done ready
-      pnpm run dev
-  - name: pnpm start:chromium
+      yarn dev
+  - name: yarn start:chromium
     command: |
       gp sync-await ready
       gp ports await 6080
       gp preview $(gp url 6080)
       sleep 5
-      pnpm start:chromium
+      yarn start:chromium
     openMode: split-right
 
 ports:
